@@ -1,0 +1,55 @@
+import numpy as np # linear algebra
+import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+from sklearn.model_selection import cross_val_score, GridSearchCV
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.ensemble import RandomForestClassifier
+import matplotlib.pyplot as plt
+
+# Input data files are available in the "../input/" directory.
+# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory
+
+import os
+for dirname, _, filenames in os.walk('/kaggle/input'):
+    for filename in filenames:
+        print(os.path.join(dirname, filename))
+
+# Any results you write to the current directory are saved as output.
+
+train_data = pd.read_csv("/kaggle/input/titanic/train.csv")
+train_data.head()
+
+test_data = pd.read_csv("/kaggle/input/titanic/test.csv")
+test_data.head()
+
+
+y = train_data["Survived"]
+
+features = ["Pclass", "Sex", "SibSp", "Parch", "Embarked"]
+X_train = pd.get_dummies(train_data[features])
+X_test = pd.get_dummies(test_data[features])
+
+print(X_train[:10])
+print(y[:10])
+print("There are ", X_train.shape[0] ," training data points")
+print("There are", X_test.shape[0] , " testing data points")
+
+def append_ones(Xs):
+  return np.hstack((Xs, np.ones((Xs.shape[0], 1))))
+
+def compute_weights(Xs, ys):
+  X_set = np.linalg.inv(np.matmul(np.transpose(Xs), Xs))  
+  XY_set = np.matmul(np.transpose(Xs), ys)
+  return np.matmul(X_set, XY_set)
+
+X_new = append_ones(X_train)
+w_star = compute_weights(X_new, y)
+print(X_new)
+print(w_star)
+
+def mse(w, X, y):
+  WX_set =  np.matmul(X, w)
+  term = np.power(y - WX_set, 2)
+  return np.mean(term)
+
+print("Training set error", mse(w_star, X_new, y))
